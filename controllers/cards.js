@@ -23,7 +23,7 @@ const postCard = (req, res, next) => {
       if (err.name === 'ValidationError') {
         return res
           .status(ERROR_VALIDATION)
-          .send('Переданные некорректные данные');
+          .send({ message: 'Переданные некорректные данные' });
       }
       next(err);
     })
@@ -39,7 +39,7 @@ const deleteCard = (req, res, next) => {
       if (err.name === 'ValidationError') {
         return res
           .status(ERROR_NOT_FOUND)
-          .send('Запрашиваемые данные не найдены');
+          .send({ message: 'Запрашиваемые данные не найдены' });
       }
       next(err);
     })
@@ -58,7 +58,7 @@ const likeCard = (req, res, next) => Card.findByIdAndUpdate(
     if (err.name === 'CastError') {
       return res
         .status(ERROR_NOT_FOUND)
-        .send('Запрашиваемые данные не найдены');
+        .send({ message: 'Запрашиваемые данные не найдены' });
     }
     next(err);
   })
@@ -76,7 +76,7 @@ const dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
     if (err.name === 'CastError') {
       return res
         .status(ERROR_NOT_FOUND)
-        .send('Запрашиваемые данные не найдены');
+        .send({ message: 'Запрашиваемые данные не найдены' });
     }
     next(err);
   })
