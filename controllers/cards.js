@@ -104,8 +104,8 @@ const dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
   .then((card) => {
     if (!card) {
       return res
-        .status(ERROR_VALIDATION)
-        .send({ message: 'Переданные некорректные данные' });
+        .status(ERROR_NOT_FOUND)
+        .send({ message: 'Запрашиваемые данные не найдены' });
     }
     res.send({ data: card });
   })
