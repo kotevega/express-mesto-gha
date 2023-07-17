@@ -24,7 +24,14 @@ const getUser = (req, res, next) => {
 
 const getByIdUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .then((user) => res.send({ data: user }))
+    .then((user) => {
+      if (!user) {
+        return res
+          .status(ERROR_VALIDATION)
+          .send({ message: 'Переданные некорректные данные' });
+      }
+      next(res.send({ data: user }));
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res
@@ -40,7 +47,6 @@ const getByIdUser = (req, res, next) => {
 
 const createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
-
   User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
@@ -58,7 +64,7 @@ const createUser = (req, res, next) => {
 
 const patchUserProfile = (req, res, next) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -83,7 +89,7 @@ const patchUserProfile = (req, res, next) => {
 
 const patchUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -107,5 +113,9 @@ const patchUserAvatar = (req, res, next) => {
 };
 
 module.exports = {
-  getUser, getByIdUser, createUser, patchUserProfile, patchUserAvatar,
+  getUser,
+  getByIdUser,
+  createUser,
+  patchUserProfile,
+  patchUserAvatar,
 };

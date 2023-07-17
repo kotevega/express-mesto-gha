@@ -53,12 +53,19 @@ const likeCard = (req, res, next) => Card.findByIdAndUpdate(
   { $addToSet: { likes: req.user._id } },
   { new: true },
 )
-  .then((card) => res.send({ data: card }))
-  .catch((err) => {
-    if (err.name === 'CastError') {
+  .then((card) => {
+    if (!card) {
       return res
         .status(ERROR_NOT_FOUND)
         .send({ message: 'Запрашиваемые данные не найдены' });
+    }
+    res.send({ data: card });
+  })
+  .catch((err) => {
+    if (err.name === 'ValidationError') {
+      return res
+        .status(ERROR_VALIDATION)
+        .send({ message: 'Переданные некорректные данные' });
     }
     next(err);
   })
@@ -71,7 +78,14 @@ const dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
   { $pull: { likes: req.user._id } },
   { new: true },
 )
-  .then((card) => res.send({ data: card }))
+  .then((card) => {
+    if (!card) {
+      return res
+        .status(ERROR_NOT_FOUND)
+        .send({ message: 'Запрашиваемые данные не найдены' });
+    }
+    res.send({ data: card });
+  })
   .catch((err) => {
     if (err.name === 'CastError') {
       return res
