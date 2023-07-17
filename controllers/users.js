@@ -27,16 +27,24 @@ const getByIdUser = (req, res, next) => {
     .then((user) => {
       if (!user) {
         return res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданные некорректные данные' });
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Запрашиваемые данные не найдены' });
       }
       next(res.send({ data: user }));
     })
     .catch((err) => {
+      if (err.name === 'CastError') {
+        return res
+          .status(ERROR_VALIDATION)
+          .send({ message: 'Переданные некорректные данные' });
+      }
+      next(err);
+    })
+    .catch((err) => {
       if (err.name === 'ValidationError') {
         return res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Запрашиваемые данные не найдены' });
+          .status(ERROR_VALIDATION)
+          .send({ message: 'Переданные некорректные данные' });
       }
       next(err);
     })
@@ -64,7 +72,11 @@ const createUser = (req, res, next) => {
 
 const patchUserProfile = (req, res, next) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { new: true, runValidators: true },
+  )
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -89,7 +101,11 @@ const patchUserProfile = (req, res, next) => {
 
 const patchUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { new: true, runValidators: true },
+  )
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {

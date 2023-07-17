@@ -34,7 +34,22 @@ const postCard = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (!card) {
+        return res
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Запрашиваемые данные не найдены' });
+      }
+      res.send({ data: card });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res
+          .status(ERROR_VALIDATION)
+          .send({ message: 'Переданные некорректные данные' });
+      }
+      next(err);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res
@@ -62,6 +77,14 @@ const likeCard = (req, res, next) => Card.findByIdAndUpdate(
     res.send({ data: card });
   })
   .catch((err) => {
+    if (err.name === 'CastError') {
+      return res
+        .status(ERROR_VALIDATION)
+        .send({ message: 'Переданные некорректные данные' });
+    }
+    next(err);
+  })
+  .catch((err) => {
     if (err.name === 'ValidationError') {
       return res
         .status(ERROR_VALIDATION)
@@ -81,13 +104,21 @@ const dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
   .then((card) => {
     if (!card) {
       return res
-        .status(ERROR_NOT_FOUND)
-        .send({ message: 'Запрашиваемые данные не найдены' });
+        .status(ERROR_VALIDATION)
+        .send({ message: 'Переданные некорректные данные' });
     }
     res.send({ data: card });
   })
   .catch((err) => {
     if (err.name === 'CastError') {
+      return res
+        .status(ERROR_VALIDATION)
+        .send({ message: 'Переданные некорректные данные' });
+    }
+    next(err);
+  })
+  .catch((err) => {
+    if (err.name === 'ValidationError') {
       return res
         .status(ERROR_NOT_FOUND)
         .send({ message: 'Запрашиваемые данные не найдены' });
