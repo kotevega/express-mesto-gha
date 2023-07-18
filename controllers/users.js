@@ -19,15 +19,14 @@ const getByIdUser = (req, res, next) => {
     .orFail(new Error('NotFound'))
     .then((user) => next(res.send({ data: user })))
     .catch((err) => {
-      console.log(err.name);
-      if (err.name === 'NotFound') {
+      if (err.name === 'CastError') {
         res
-          .status(ERROR_NOT_FOUND)
+          .status(ERROR_VALIDATION)
           .send({ message: 'Запрашиваемые данные не найдены' });
       } else {
         res
-          .status(ERROR_DEFAULT)
-          .send({ message: `На сервере произошла ошибка: ${err}` });
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Переданные некорректные данные' });
       }
     });
 };

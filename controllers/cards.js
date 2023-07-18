@@ -14,7 +14,7 @@ const getCards = (req, res) => {
       .send({ message: `На сервере произошла ошибка: ${err}` }));
 };
 
-const postCard = (req, res, next) => {
+const postCard = (req, res) => {
   const { name, link } = req.body;
   const id = req.user._id;
   Card.create({ name, link, owner: id })
@@ -25,93 +25,70 @@ const postCard = (req, res, next) => {
           .status(ERROR_VALIDATION)
           .send({ message: 'Переданные некорректные данные' });
       }
-      next(err);
-    })
-    .catch((err) => res
-      .status(ERROR_DEFAULT)
-      .send({ message: `На сервере произошла ошибка: ${err}` }));
+      res
+        .status(ERROR_DEFAULT)
+        .send({ message: 'На сервере произошла ошибка' });
+    });
 };
 
-const deleteCard = (req, res, next) => {
+const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => {
-      if (!card) {
-        return res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Запрашиваемые данные не найдены' });
-      }
-      res.send({ data: card });
-    })
+    .orFail(new Error('NotFound'))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res
+        res
           .status(ERROR_VALIDATION)
+          .send({ message: 'Запрашиваемые данные не найдены' });
+      } else {
+        res
+          .status(ERROR_NOT_FOUND)
           .send({ message: 'Переданные некорректные данные' });
       }
-      next(err);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Запрашиваемые данные не найдены' });
-      }
-      next(err);
-    })
-    .catch((err) => res
-      .status(ERROR_DEFAULT)
-      .send({ message: `На сервере произошла ошибка: ${err}` }));
+    });
 };
 
-const likeCard = (req, res, next) => Card.findByIdAndUpdate(
-  req.params.cardId,
-  { $addToSet: { likes: req.user._id } },
-  { new: true },
-)
-  .then((card) => {
-    if (!card) {
-      return res
-        .status(ERROR_NOT_FOUND)
-        .send({ message: 'Запрашиваемые данные не найдены' });
-    }
-    res.send({ data: card });
-  })
-  .catch((err) => {
-    if (err.name === 'CastError') {
-      return res
-        .status(ERROR_VALIDATION)
-        .send({ message: 'Переданные некорректные данные' });
-    }
-    next(err);
-  })
-  .catch((err) => res
-    .status(ERROR_DEFAULT)
-    .send({ message: `На сервере произошла ошибка: ${err}` }));
+const likeCard = (req, res) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
+    .orFail(new Error('NotFound'))
+    .then((card) => res.send({ data: card }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res
+          .status(ERROR_VALIDATION)
+          .send({ message: 'Запрашиваемые данные не найдены' });
+      } else {
+        res
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Переданные некорректные данные' });
+      }
+    });
+};
 
-const dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
-  req.params.cardId,
-  { $pull: { likes: req.user._id } },
-  { new: true },
-)
-  .then((card) => {
-    if (!card) {
-      return res
-        .status(ERROR_NOT_FOUND)
-        .send({ message: 'Запрашиваемые данные не найдены' });
-    }
-    res.send({ data: card });
-  })
-  .catch((err) => {
-    if (err.name === 'CastError') {
-      return res
-        .status(ERROR_VALIDATION)
-        .send({ message: 'Переданные некорректные данные' });
-    }
-    next(err);
-  })
-  .catch((err) => res
-    .status(ERROR_DEFAULT)
-    .send({ message: `На сервере произошла ошибка: ${err}` }));
+const dislikeCard = (req, res) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
+    .orFail(new Error('NotFound'))
+    .then((card) => res.send({ data: card }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res
+          .status(ERROR_VALIDATION)
+          .send({ message: 'Запрашиваемые данные не найдены' });
+      } else {
+        res
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Переданные некорректные данные' });
+      }
+    });
+};
 
 module.exports = {
   getCards,
