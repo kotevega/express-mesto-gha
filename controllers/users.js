@@ -6,17 +6,9 @@ const {
   ERROR_DEFAULT,
 } = require('../utils/errors');
 
-const getUser = (req, res, next) => {
+const getUser = (req, res) => {
   User.find({})
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданные некорректные данные' });
-      }
-      next(err);
-    })
     .catch((err) => res
       .status(ERROR_DEFAULT)
       .send({ message: `На сервере произошла ошибка: ${err}` }));
@@ -24,39 +16,26 @@ const getUser = (req, res, next) => {
 
 const getByIdUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .then((user) => {
-      if (!user) {
-        return res
+    .orFail(new Error('NotFound'))
+    .then((user) => next(res.send({ data: user })))
+    .catch((err) => {
+      console.log(err.name);
+      if (err.name === 'NotFound') {
+        res
           .status(ERROR_NOT_FOUND)
           .send({ message: 'Запрашиваемые данные не найдены' });
+      } else {
+        res
+          .status(ERROR_DEFAULT)
+          .send({ message: `На сервере произошла ошибка: ${err}` });
       }
-      next(res.send({ data: user }));
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданные некорректные данные' });
-      }
-      next(err);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданные некорректные данные' });
-      }
-      next(err);
-    })
-    .catch((err) => res
-      .status(ERROR_DEFAULT)
-      .send({ message: `На сервере произошла ошибка: ${err}` }));
+    });
 };
 
 const createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res
@@ -86,14 +65,6 @@ const patchUserProfile = (req, res, next) => {
       }
       next(err);
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Запрашиваемые данные не найдены' });
-      }
-      next(err);
-    })
     .catch((err) => res
       .status(ERROR_DEFAULT)
       .send({ message: `На сервере произошла ошибка: ${err}` }));
@@ -112,14 +83,6 @@ const patchUserAvatar = (req, res, next) => {
         return res
           .status(ERROR_VALIDATION)
           .send({ message: 'Переданные некорректные данные' });
-      }
-      next(err);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Запрашиваемые данные не найдены' });
       }
       next(err);
     })

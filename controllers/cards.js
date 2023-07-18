@@ -18,7 +18,7 @@ const postCard = (req, res, next) => {
   const { name, link } = req.body;
   const id = req.user._id;
   Card.create({ name, link, owner: id })
-    .then((card) => res.send({ data: card }))
+    .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res
@@ -84,14 +84,6 @@ const likeCard = (req, res, next) => Card.findByIdAndUpdate(
     }
     next(err);
   })
-  .catch((err) => {
-    if (err.name === 'ValidationError') {
-      return res
-        .status(ERROR_VALIDATION)
-        .send({ message: 'Переданные некорректные данные' });
-    }
-    next(err);
-  })
   .catch((err) => res
     .status(ERROR_DEFAULT)
     .send({ message: `На сервере произошла ошибка: ${err}` }));
@@ -114,14 +106,6 @@ const dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
       return res
         .status(ERROR_VALIDATION)
         .send({ message: 'Переданные некорректные данные' });
-    }
-    next(err);
-  })
-  .catch((err) => {
-    if (err.name === 'ValidationError') {
-      return res
-        .status(ERROR_NOT_FOUND)
-        .send({ message: 'Запрашиваемые данные не найдены' });
     }
     next(err);
   })
