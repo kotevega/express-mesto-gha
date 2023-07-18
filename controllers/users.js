@@ -31,7 +31,7 @@ const getByIdUser = (req, res, next) => {
     });
 };
 
-const createUser = (req, res, next) => {
+const postUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((user) => res.status(201).send({ data: user }))
@@ -41,14 +41,13 @@ const createUser = (req, res, next) => {
           .status(ERROR_VALIDATION)
           .send({ message: 'Переданные некорректные данные' });
       }
-      next(err);
-    })
-    .catch((err) => res
-      .status(ERROR_DEFAULT)
-      .send({ message: `На сервере произошла ошибка: ${err}` }));
+      res
+        .status(ERROR_DEFAULT)
+        .send({ message: 'На сервере произошла ошибка' });
+    });
 };
 
-const patchUserProfile = (req, res, next) => {
+const patchUserProfile = (req, res) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -62,14 +61,13 @@ const patchUserProfile = (req, res, next) => {
           .status(ERROR_VALIDATION)
           .send({ message: 'Переданные некорректные данные' });
       }
-      next(err);
-    })
-    .catch((err) => res
-      .status(ERROR_DEFAULT)
-      .send({ message: `На сервере произошла ошибка: ${err}` }));
+      res
+        .status(ERROR_DEFAULT)
+        .send({ message: 'На сервере произошла ошибка' });
+    });
 };
 
-const patchUserAvatar = (req, res, next) => {
+const patchUserAvatar = (req, res) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -83,17 +81,16 @@ const patchUserAvatar = (req, res, next) => {
           .status(ERROR_VALIDATION)
           .send({ message: 'Переданные некорректные данные' });
       }
-      next(err);
-    })
-    .catch((err) => res
-      .status(ERROR_DEFAULT)
-      .send({ message: `На сервере произошла ошибка: ${err}` }));
+      res
+        .status(ERROR_DEFAULT)
+        .send({ message: 'На сервере произошла ошибка' });
+    });
 };
 
 module.exports = {
   getUser,
   getByIdUser,
-  createUser,
+  postUser,
   patchUserProfile,
   patchUserAvatar,
 };
