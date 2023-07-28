@@ -9,9 +9,11 @@ const {
 const getCards = (req, res) => {
   Card.find({})
     .then((card) => res.send({ data: card }))
-    .catch((err) => res
-      .status(ERROR_DEFAULT)
-      .send({ message: `На сервере произошла ошибка: ${err}` }));
+    .catch((err) =>
+      res
+        .status(ERROR_DEFAULT)
+        .send({ message: `На сервере произошла ошибка: ${err}` })
+    );
 };
 
 const postCard = (req, res) => {
@@ -32,9 +34,17 @@ const postCard = (req, res) => {
 };
 
 const deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .orFail(new Error('NotFound'))
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (card.owner === req.user._id) {
+        card.deleteOne(card);
+      } else {
+        res
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Переданные некорректные данные' });
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res
@@ -52,7 +62,7 @@ const likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
-    { new: true },
+    { new: true }
   )
     .orFail(new Error('NotFound'))
     .then((card) => res.send({ data: card }))
@@ -73,7 +83,7 @@ const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
-    { new: true },
+    { new: true }
   )
     .orFail(new Error('NotFound'))
     .then((card) => res.send({ data: card }))
