@@ -5,6 +5,10 @@ const helmet = require('helmet');
 const router = require('./routes');
 const { login, createUser } = require('./controllers/users');
 const errors = require('./middlewares/errors');
+const {
+  validateCreateUser,
+  validateLogin,
+} = require('./utils/validate');
 
 const app = express();
 
@@ -19,8 +23,8 @@ app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', validateLogin, login);
+app.post('/signup', validateCreateUser, createUser);
 app.use(router);
 app.use(errors);
 
