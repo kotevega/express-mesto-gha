@@ -14,6 +14,12 @@ const validateDisLikeCard = celebrate({
   }),
 });
 
+const validateDeleteCard = celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().length(24).hex().required(),
+  }),
+});
+
 const validatePostCard = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
@@ -60,6 +66,7 @@ const validateGetByIdUser = celebrate({
 module.exports = {
   validateLikeCard,
   validateDisLikeCard,
+  validateDeleteCard,
   validatePostCard,
   validateCreateUser,
   validatePatchUserProfile,
