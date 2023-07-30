@@ -55,7 +55,7 @@ const createUser = (req, res, next) => {
       password: hash,
     }))
     .then((user) => res.status(201).json({
-      user,
+      email: user.email,
     }))
     .catch((err) => {
       if (err.code === 11000) {
