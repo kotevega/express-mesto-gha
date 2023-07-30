@@ -55,6 +55,9 @@ const createUser = (req, res, next) => {
       password: hash,
     }))
     .then((user) => res.status(201).json({
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
       email: user.email,
     }))
     .catch((err) => {
