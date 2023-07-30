@@ -3,119 +3,92 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const {
-  ERROR_VALIDATION,
-  ERROR_NOT_FOUND,
-  ERROR_UNAUTHORIZED,
-  ERROR_DEFAULT,
-} = require('../utils/errors');
+  ErrorValidation,
+  ErrorNotFound,
+  ErrorConflict,
+  ErrorUnauthorized,
+} = require('../utils/error');
 
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   User.find({})
     .then((user) => res.send({ data: user }))
-    .catch((err) =>
-      res
-        .status(ERROR_DEFAULT)
-        .send({ message: `На сервере произошла ошибка: ${err}` })
-    );
+    .catch(next);
 };
 
-const getByIdUser = (req, res) => {
+const getByIdUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(new Error('NotFound'))
+    .orFail(new ErrorNotFound('Данные не найдены'))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Запрашиваемые данные не найдены' });
+        next(new ErrorValidation('Переданные некорректные данные'));
       } else {
-        res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Переданные некорректные данные' });
+        next(new ErrorNotFound('Данные не найдены'));
       }
     });
 };
 
-const getAboutUser = (req, res) => {
+const getAboutUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(new Error('NotFound'))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Запрашиваемые данные не найдены' });
+        next(new ErrorValidation('Запрашиваемые данные не найдены'));
       } else {
-        res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Переданные некорректные данные' });
+        next(new ErrorNotFound('Переданные некорректные данные'));
       }
     });
 };
 
-const createUser = (req, res) => {
-  const { name, about, avatar, email, password } = req.body;
+const createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
   bcrypt
     .hash(password, 10)
-    .then((hash) =>
-      User.create({
-        name,
-        about,
-        avatar,
-        email,
-        password: hash,
-      })
-    )
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
     .then((user) => res.status(201).json(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданные некорректные данные' });
+      if (err.name === 'ValidationError' || err.code === 11000) {
+        next(new ErrorConflict('Переданные некорректные данные'));
       }
-      res
-        .status(ERROR_DEFAULT)
-        .send({ message: 'На сервере произошла ошибка' });
     });
 };
 
-const patchUserProfile = (req, res) => {
+const patchUserProfile = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
     { name, about },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   )
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданные некорректные данные' });
+        next(new ErrorValidation('Переданные некорректные данные'));
       }
-      res
-        .status(ERROR_DEFAULT)
-        .send({ message: 'На сервере произошла ошибка' });
     });
 };
 
-const patchUserAvatar = (req, res) => {
+const patchUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   )
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданные некорректные данные' });
+        next(new ErrorValidation('Переданные некорректные данные'));
       }
-      res
-        .status(ERROR_DEFAULT)
-        .send({ message: 'На сервере произошла ошибка' });
     });
 };
 
@@ -133,24 +106,18 @@ const login = (req, res, next) => {
               expiresIn: '7d',
             });
             res.cookie('jwt', token, { httpOnly: true, sameSite: true });
-            res.send(user);
+            res.send({ data: user });
           } else {
-            res
-              .status(ERROR_UNAUTHORIZED)
-              .send({ message: 'Неправильные почта или пароль ' });
+            next(new ErrorUnauthorized('Неправильные почта или пароль'));
           }
         })
         .catch(next);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Запрашиваемые данные не найдены' });
+        next(new ErrorNotFound('Данные не найдены'));
       } else {
-        res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Переданные некорректные данные' });
+        next(new ErrorValidation('Переданные некорректные данные'));
       }
     });
 };

@@ -1,47 +1,21 @@
 /* eslint-disable consistent-return */
 const jwt = require('jsonwebtoken');
-const { ERROR_UNAUTHORIZED } = require('../utils/errors');
+const { ErrorUnauthorized } = require('../utils/error');
 
 const auth = (req, res, next) => {
-  let token;
-  try {
-    token = req.cookies.jwt;
-  } catch (err) {
-    return res
-      .status(ERROR_UNAUTHORIZED)
-      .send({ message: 'Необходима авторизация' });
+  const token = req.cookies.jwt;
+  if (!token) {
+    throw new ErrorUnauthorized('Необходима авторизация');
   }
+
   let payload;
-
   try {
-    payload = jwt.verify(token, 'SECRET');
+    payload = jwt.verify(token, 'secret-key');
   } catch (err) {
-    return res
-      .status(ERROR_UNAUTHORIZED)
-      .send({ message: 'Необходима авторизация' });
+    throw new ErrorUnauthorized('Необходима авторизация');
   }
-
   req.user = payload;
   next();
-  // const token = req.cookies.jwt;
-  // if (!token) {
-  //   return res
-  //     .status(ERROR_UNAUTHORIZED)
-  //     .send({ message: 'Необходима авторизация' });
-  // }
-
-  // let payload;
-
-  // try {
-  //   payload = jwt.verify(token, 'secret-key');
-  // } catch (err) {
-  //   return res
-  //     .status(ERROR_UNAUTHORIZED)
-  //     .send({ message: 'Необходима авторизация' });
-  // }
-  // req.user = payload;
-
-  // next();
 };
 
 module.exports = auth;
