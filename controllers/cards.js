@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return */
 const Card = require('../models/card');
-const { ErrorValidation, ErrorNotFound } = require('../utils/error');
+const { ErrorValidation, ErrorForbidden, ErrorNotFound } = require('../utils/error');
 
 const getCards = (req, res, next) => {
   Card.find({})
@@ -31,7 +31,7 @@ const deleteCard = (req, res, next) => {
           .then((cards) => res.send({ data: cards }))
           .catch(next);
       } else {
-        next(new ErrorNotFound('Данные не найдены'));
+        next(new ErrorForbidden('Нет доступа'));
       }
     })
     .catch(next);
