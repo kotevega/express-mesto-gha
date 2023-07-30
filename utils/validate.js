@@ -2,10 +2,22 @@ const { celebrate, Joi } = require('celebrate');
 
 const regex =  /^(https?):\/\/(?:www\.)?[0-9a-zA-Z-._~:\/?!#\[\]@&'()\*,;=\.\+\$]\.?\/?[0-9a-zA-Z-._~:\/?!#\[\]@&'()\*,;=\.\+\$#]/; // eslint-disable-line
 
+const validateLikeCard = celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().length(24).hex().required(),
+  }),
+});
+
+const validateDisLikeCard = celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().length(24).hex().required(),
+  }),
+});
+
 const validatePostCard = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required(),
+    link: Joi.string().required().pattern(regex),
   }),
 });
 
@@ -39,10 +51,19 @@ const validateLogin = celebrate({
   }),
 });
 
+const validateGetByIdUser = celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().length(24).hex().required(),
+  }),
+});
+
 module.exports = {
+  validateLikeCard,
+  validateDisLikeCard,
   validatePostCard,
   validateCreateUser,
   validatePatchUserProfile,
   validatePatchUserAvatar,
   validateLogin,
+  validateGetByIdUser,
 };

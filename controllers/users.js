@@ -6,6 +6,7 @@ const {
   ErrorValidation,
   ErrorNotFound,
   ErrorUnauthorized,
+  ErrorConflict,
 } = require('../utils/error');
 
 const getUser = (req, res, next) => {
@@ -57,8 +58,8 @@ const createUser = (req, res, next) => {
       user,
     }))
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.code === 11000) {
-        next(new ErrorValidation('Переданные некорректные данные'));
+      if (err.code === 11000) {
+        next(new ErrorConflict('Данный email уже зарегистрирован'));
       }
     });
 };
@@ -118,7 +119,7 @@ const login = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new ErrorNotFound('Данные не найдены'));
       } else {
-        next(new ErrorValidation('Переданные некорректные данные'));
+        next(new ErrorUnauthorized('Переданные некорректные данные'));
       }
     });
 };

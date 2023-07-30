@@ -9,11 +9,12 @@ const {
 const {
   validatePatchUserProfile,
   validatePatchUserAvatar,
+  validateGetByIdUser,
 } = require('../utils/validate');
 
 userRouter.get('/', getUser);
 userRouter.get('/me', getAboutUser);
-userRouter.get('/:userId', getByIdUser);
+userRouter.get('/:userId', validateGetByIdUser, getByIdUser);
 userRouter.patch('/me', validatePatchUserProfile, patchUserProfile);
 userRouter.patch('/me/avatar', validatePatchUserAvatar, patchUserAvatar);
 
