@@ -1,6 +1,10 @@
 /* eslint-disable consistent-return */
 const Card = require('../models/card');
-const { ErrorValidation, ErrorForbidden, ErrorNotFound } = require('../utils/error');
+const {
+  ErrorValidation,
+  ErrorForbidden,
+  ErrorNotFound,
+} = require('../utils/error');
 
 const getCards = (req, res, next) => {
   Card.find({})
