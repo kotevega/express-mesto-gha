@@ -5,7 +5,6 @@ const User = require('../models/user');
 const {
   ErrorValidation,
   ErrorNotFound,
-  ErrorConflict,
   ErrorUnauthorized,
 } = require('../utils/error');
 
@@ -57,7 +56,7 @@ const createUser = (req, res, next) => {
     .then((user) => res.status(201).json(user))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.code === 11000) {
-        next(new ErrorConflict('Переданные некорректные данные'));
+        next(new ErrorValidation('Переданные некорректные данные'));
       }
     });
 };
