@@ -4,9 +4,7 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const { errors } = require('celebrate');
 const router = require('./routes');
-const { login, createUser } = require('./controllers/users');
 const error = require('./middlewares/errors');
-const { validateCreateUser, validateLogin } = require('./utils/validate');
 
 const app = express();
 
@@ -20,9 +18,6 @@ mongoose.connect(DB_URL, {
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
-
-app.post('/signin', validateLogin, login);
-app.post('/signup', validateCreateUser, createUser);
 app.use(router);
 app.use(errors());
 app.use(error);

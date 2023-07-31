@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 const Card = require('../models/card');
 const {
   ErrorValidation,
@@ -19,7 +18,7 @@ const postCard = (req, res, next) => {
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ErrorValidation('Переданные некорректные данные'));
+        return next(new ErrorValidation('Переданные некорректные данные'));
       }
       next(err);
     });
@@ -53,7 +52,7 @@ const likeCard = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new ErrorValidation('Переданные некорректные данные'));
       } else {
-        next(new ErrorNotFound('Данные не найдены'));
+        next(err);
       }
     });
 };
@@ -70,7 +69,7 @@ const dislikeCard = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new ErrorValidation('Переданные некорректные данные'));
       } else {
-        next(new ErrorNotFound('Данные не найдены'));
+        next(err);
       }
     });
 };

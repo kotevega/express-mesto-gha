@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
@@ -23,20 +22,20 @@ const getByIdUser = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new ErrorValidation('Переданные некорректные данные'));
       } else {
-        next(new ErrorNotFound('Данные не найдены'));
+        next(err);
       }
     });
 };
 
 const getAboutUser = (req, res, next) => {
   User.findById(req.user._id)
-    .orFail(new Error('NotFound'))
+    .orFail(() => new ErrorNotFound('Данных с указанным id не существует'))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ErrorValidation('Запрашиваемые данные не найдены'));
       } else {
-        next(new ErrorNotFound('Переданные некорректные данные'));
+        next(err);
       }
     });
 };
@@ -62,7 +61,12 @@ const createUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.code === 11000) {
-        next(new ErrorConflict('Данный email уже зарегистрирован'));
+        return next(new ErrorConflict('Данный email уже зарегистрирован'));
+      }
+      if (err.name === 'CastError') {
+        next(new ErrorValidation('Запрашиваемые данные не найдены'));
+      } else {
+        next(err);
       }
     });
 };
@@ -78,6 +82,8 @@ const patchUserProfile = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ErrorValidation('Переданные некорректные данные'));
+      } else {
+        next(err);
       }
     });
 };
@@ -93,6 +99,8 @@ const patchUserAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ErrorValidation('Переданные некорректные данные'));
+      } else {
+        next(err);
       }
     });
 };
@@ -101,7 +109,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
   User.findOne({ email })
     .select('+password')
-    .orFail(() => new Error('NotFound'))
+    .orFail(() => new ErrorUnauthorized('Неправильные почта или пароль'))
     .then((user) => {
       bcrypt
         .compare(password, user.password)
@@ -111,20 +119,14 @@ const login = (req, res, next) => {
               expiresIn: '7d',
             });
             res.cookie('jwt', token, { httpOnly: true, sameSite: true });
-            res.send({ data: user });
+            res.send({ message: 'Регистрация успешна' });
           } else {
             next(new ErrorUnauthorized('Неправильные почта или пароль'));
           }
         })
         .catch(next);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new ErrorNotFound('Данные не найдены'));
-      } else {
-        next(new ErrorUnauthorized('Переданные некорректные данные'));
-      }
-    });
+    .catch(next);
 };
 
 module.exports = {
